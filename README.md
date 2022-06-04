@@ -24,6 +24,7 @@ Limpiezayanalisis
 ├── README.md       		- Este fichero explicativo
 │
 │── codigo			- Carpeta con el codigo generado
+│   ├── biblio.bib		- Fichero para la bibliografia
 │   └── daniel_gonzalez.Rmd	- Codigo generado
 │
 │── data			- Carpeta con los datos originales
