@@ -438,7 +438,7 @@ regLO <- glm(datos$Survived ~ GrupoEdad+Pclass+Sex,data=datos_arbol, family="bin
 summary(regLO)
 ```
 
-Ahora se puede observar como la significancia de las variables realmente decae con el grupo de la 3ª edad, siendo alta para el resto, lo que, si se compara con el resultado anterior, tiene su origen en que el grupo de la 3ª edad en su inmensa mayoría se clasifican como no supervivientes, de ahí que apenas presente significancia.
+Ahora se puede observar como la significancia de las variables realmente decae con el grupo de adultos, siendo alta para el resto, lo que, si se compara con el resultado anterior, tiene su origen en que el grupo de adultos en su inmensa mayoría se clasifican como no supervivientes, de ahí que apenas presente significancia.
 
 
 Si se calcula la efectividad del modelo construido aún a sabiendas de que son los mismos datos usados, sin tener en cuenta que se podría haber generado un conjunto de entrenamiento y otro de test, pero para tener una referencia respecto del método anterior:
