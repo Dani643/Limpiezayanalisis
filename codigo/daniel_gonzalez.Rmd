@@ -19,7 +19,7 @@ nocite: '@*'
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)#, fig.width=12, fig.height=8)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r load_libraries, include=FALSE}
@@ -32,16 +32,17 @@ if (!require('knitr')) install.packages('knitr'); library('knitr')
 
 # Descripción del dataset.
 
-Para la realización de la práctica, se ha seleccionado el dataset *Titanic: Machine Learning from Disaster* (https://www.kaggle.com/c/titanic), puesto que como se comentará a continuación, presenta algunas peculiaridades interesantes, además de la utilidad de poder aprovechar el trabajo realizado para participar en la competición Kaggle.
+Para la realización de la práctica, se ha seleccionado el dataset *Titanic: Machine Learning from Disaster* (https://www.kaggle.com/c/titanic), puesto que como se comentará a continuación, presenta algunas peculiaridades interesantes, además de la utilidad de poder aprovechar el trabajo realizado para participar en la competición de Kaggle.
+
 
 Los datos contenidos en Kaggle consisten en tres ficheros:
 
 * gender_submission.csv: un ejemplo de entrega para la competición.
 * test.csv: datos de prueba para testear el modelo generado.
-* train.csv: los datos en sí.
+* train.csv: los datos en sí de los pasajeros del Titanic.
 
 
-Si se describen el dataset *train.csv* que contien todas las variables:
+Si se describen los datos que se encuentran en el dataset *train.csv* que contiene todas las variables:
 
 
 * PassengerId: Identificador del pasajero.
@@ -50,8 +51,8 @@ Si se describen el dataset *train.csv* que contien todas las variables:
 * Name: Nombre del pasajero.
 * Sex: Genero del pasajero.
 * Age: Edad del pasajero.
-* SibSp; Número de hermanos y cónyuges abordo.
-* Parch: Número padres e hijos abordo.
+* SibSp: Número de hermanos y cónyuges abordo.
+* Parch: Número de padres e hijos abordo.
 * Ticket: Número del ticket.
 * Fare: Tarifa del billete.
 * Cabin: Número de cabina.
@@ -59,23 +60,27 @@ Si se describen el dataset *train.csv* que contien todas las variables:
 
 
 
-El análisis del dataset del Titanic aunque a priori pueda parecer intrascendente realmente presenta varios puntos interesantes. El primero de ellos es conocer con profundidad un suceso histórico y los eventos acontecidos a través de los datos, ya que a través del análisis de los mismos, se pueden extrapolar determinados acontecimientos si que se haya estado presente. Esto es, saber como se procedió a la evacuación de los pasajeros, a quien se dio prioridad, si estoy influyo en salvar la vida de terminadas personas.
+El análisis del dataset del Titanic aunque a priori pueda parecer intrascendente realmente presenta varios puntos interesantes. El primero de ellos es conocer con profundidad un suceso histórico y los eventos acontecidos a través de los datos, ya que, a través del análisis de los mismos, se pueden extrapolar determinados acontecimientos sin que se haya estado presente. Esto es, saber cómo se procedió a la evacuación de los pasajeros, a quien se dio prioridad, y si esto influyo en salvar la vida de determinadas personas.
 
-El segundo punto, va anidado al primero, y es que muestra la capacidad del análisis de datos y del *machine learning* para extraer conocimiento de los mismos, mostrando la utilidad de esta ciencia.
+
+El segundo punto, va anidado al primero, y es mostrar la verdadera capacidad del análisis de datos y del *Machine Learning* para extraer conocimiento de los mismos, mostrando la utilidad de esta ciencia.
 
 \pagebreak
 
 # Integración y selección de los datos de interés a analizar.
 
-Si se observan los archivos puestos a disposición en Kaggle como fuente de datos, se observa que solo los csv de *test* y *train* son datos relaciones con el Titanic.
+Si se observan los archivos puestos a disposición en Kaggle como fuente de datos, se observa que solo los *csv* de *test* y *train* son datos relaciones con el Titanic.
 
-En primer lugar se cargaran los dos conjuntos de datos:
+
+En primer lugar, se cargarán los dos conjuntos de datos:
+
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 # Se leen los datos mediante read.csv ya que están separados por coma
 datos_test <- read.csv('data/test.csv')
 datos_train <- read.csv('data/train.csv')
 ```
+
 
 Si se verifica la estructura del juego de datos cargados:
 
@@ -85,11 +90,13 @@ str(datos_train, width=80, strict.width="cut")
 str(datos_test, width=80, strict.width="cut")
 ```
 
-En un principio se valoro el integrar ambos conjuntos de datos, ya que esto permitiría tener un mayor número de muestras para el análisis posterior, pero esta idea se descarto por dos circunstancias. Como se observa, el csv nombrado como *test*, contiene una variable menos, que es la variable objetivo. Esto puede no representar un problema al valorar el modelo creado con un algoritmo no supervisado, pero si se desea crear un  modelo supervisado y posteriormente testearlo con este conjunto, esto no será posible ya que no podrá obtener el valor de rendimiento del mismo. Además de esta circunstancia, la suma de ambos conjuntos no representa el número total de pasajeros del Titanic, es decir, incluso ambos conjuntos representa una muestra de los pasajeros, y no la población total del elemento bajo análisis, es por ello que no se tiene la certeza de si los datos de *test* puestos a disposición pueden haber sido realizados bajo la premisa de que sean para probar solo el conjunto de entrenamiento, y por lo tanto datos no originales. 
+En un principio se valoró el integrar ambos conjuntos de datos, ya que esto permitiría tener un mayor número de muestras para el análisis posterior, pero esta idea se descartó por dos circunstancias. Como se observa, el *csv* nombrado como *test*, contiene una variable menos, que es la variable objetivo. Esto puede no representar un problema al valorar el modelo creado con un algoritmo no supervisado, pero si se desea crear un modelo supervisado y posteriormente testearlo con este conjunto, esto no será posible ya que no podrá obtener el valor de rendimiento del mismo. Además de esta circunstancia, la suma de ambos conjuntos no representa el número total de pasajeros del Titanic, es decir, incluso ambos conjuntos representan una muestra de los pasajeros, y no la población total del elemento bajo análisis, es por ello que no se tiene la certeza de si los datos de *test* puestos a disposición pueden haber sido realizados bajo la premisa de que sean para probar solo el conjunto de entrenamiento, y por lo tanto datos no originales.
 
 Por ello se procederá a seleccionar para el análisis los datos del conjunto de *train* exclusivamente.
 
-Con los valores mostrados anteriormente, se pueden seleccionar un subconjunto de los datos y proceder a eliminar algunas variables que no aporten valor al análisis, al ser identificadores únicos, como son el nombre del pasajero, su identificador, el número del ticket y el número cabina. Además, se elimina la ciudad donde embarco, ya que no tendrá representatividad para saber si se salvo o no, ya que podría correlar solo si se salvaron más los pasajeros de una determinada ciudad al tener un determinado nivel social, que puede obtenerse a través de la categoría en la que viajaban:
+
+
+Con los valores mostrados anteriormente, se pueden seleccionar un subconjunto de los datos y proceder a eliminar algunas variables que no aporten valor al análisis, al ser datos de identificadores únicos del pasajero, como son el nombre, su identificador, el número del ticket y el número cabina. Además, se elimina la ciudad donde embarco, ya que no tendrá representatividad para saber si se salvó o no, ya que podría correlar solo si se salvaron más los pasajeros de una determinada ciudad al tener un determinado nivel social, pero esto puede obtenerse a través de la categoría en la que viajaban:
 
 
 ```{r}
@@ -116,46 +123,43 @@ Se verifica en primer lugar a través de *summary* los datos que se tienen carga
 summary(datos)
 ```
 
-## ¿Los datos contienen ceros o elementos vacíos? Gestiona cada uno de estos casos.
+## ¿Los datos contienen ceros o elementos vacíos?
 
 Ya que con anterioridad se factorizaron aquellas variables categóricas, y se ha mostrado mediante *summary* un resumen de los datos, es fácil identificar que existen datos perdidos para la variable edad.
 
-Ya que el volumen de valores *NA's* existentes es bastante elevado, no es viable eliminar estas filas ya que se perderían demasiados datos para el análisis. Así mismo, una de las técnicas que también se emplean, que es sustituir el valor no existente por la media de todos ellos tampoco va a resultar apropiado, ya que al ser un volumen alto estaría sesgando los datos, además de que la edad es uno de los elementos que puede tener un mayor peso en el análisis, por lo que no puede ser imputado de esta manera.
+Puesto que el volumen de valores *NA's* existentes es bastante elevado, no es viable eliminar estas filas ya que se perderían demasiados datos para el análisis. Así mismo, una de las técnicas que habitualmente también se emplean, que es sustituir el valor no existente por la media de todos ellos tampoco va a resultar apropiado, ya que al ser un volumen alto estaría sesgando los datos con los valores introducidos, además de que la edad es uno de los elementos que puede tener un mayor peso en el análisis, por lo que no puede ser imputado de esta manera.
 
 
-Por ello, se procede a imputar los valores ausentes mediante kNN, ya que así serán calculados valores en referencia a los valores de sus vecinos, y por lo tanto con un determinado parecido, en este caso seleccionando las 5 vecindades más proximas:
+Por ello, se procede a imputar los valores ausentes mediante *kNN*, ya que así serán calculados valores en referencia a los valores de sus vecinos, y por lo tanto con un determinado parecido, en este caso seleccionando las cinco vecindades más próximas:
 
 ```{r message= FALSE, warning=FALSE}
 # Se carga la librería VIM
 if (!require('VIM')) install.packages('VIM'); library('VIM')
-
-# Se imputarán los valores para la variable Age a partir del resto de Variables
+# Se imputarán los valores para la variable Age a partir del resto de variables
 datos <- kNN(datos, variable=c('Age'), k=5,
              dist_var=c("Survived","Pclass", "Sex", "SibSp","Parch", "Fare"))
 ```
-Se comprueba que se han imputado todos los valores:
+Se comprueba que se han imputado todos los valores y no quedan *NA's*:
 
 ```{r}
 summary(datos)
 ```
 
 
-Se elimina la columna adicional creada por kNN durante la imputación:
+Se elimina la columna adicional creada por *kNN* durante la imputación:
 
 ```{r}
 datos$Age_imp <- NULL
 ```
 
-Si ahora se revisan los datos con vistas a los ceros de los datos, es inmediato ver que en la variable tarifa existen valores con 0, por lo tanto se puede tomar como un valor por defecto puesto para una variable numérica en lugar de *NA* como en el caso anterior, ya que la tarifa no puede ser nula.
+Si ahora se revisan los datos con vistas a los ceros de los datos, es inmediato darse cuenta que en la variable tarifa existen valores con cero, por lo tanto, se puede tomar como un valor por defecto de relleno para una variable numérica en lugar de *NA* como sucedía antes, ya que la tarifa no puede ser nula.
 
-De esta forma se procederá como en el caso anterior para imputar valores a estos casos, excepto que habrá que marcar a kNN cuales son los valores a imputar:
+De esta forma se procederá como en el caso anterior para imputar valores a estos casos, excepto que habrá que marcar a *kNN* cuales son los valores a imputar:
+
 
 ```{r message= FALSE, warning=FALSE}
-# Se carga la librería VIM
-if (!require('VIM')) install.packages('VIM'); library('VIM')
-
 datos$Fare[datos$Fare == 0] <- NA
-# Se imputarán los valores para la variable Fare a partir del resto de Variables
+# Se imputarán los valores para la variable Fare a partir del resto de variables
 datos <- kNN(datos, variable=c('Fare'), k=5,
              dist_var=c("Survived","Pclass", "Sex", "SibSp","Parch", "Age"))
 ```
@@ -167,7 +171,7 @@ Se comprueba que se han imputado todos los valores y ya no existen billetes sin 
 summary(datos)
 ```
 
-Se elimina la columna adicional creada por kNN durante la imputación:
+Se elimina la columna adicional creada por *kNN* durante la imputación:
 
 ```{r}
 datos$Fare_imp <- NULL
@@ -177,7 +181,7 @@ datos$Fare_imp <- NULL
 
 ## Identifica y gestiona los valores extremos.
 
-Ahora será necesario revisar los valores extremos que se encuentran en el conjunto de datos. Ya que existen variables categoricas, no será necesario analizar todas ya que estás solo tendrán los valores tabulados, por lo que se comenzará a revisar las variables numéricas que puedan tener valores extremos
+Ahora será necesario revisar los valores extremos que se encuentran en el conjunto de datos. Ya que existen variables categóricas, no será necesario analizar todas ya que estás solo tendrán los valores tabulados, por lo que se comenzará a revisar las variables numéricas que puedan tener valores extremos.
 
 
 Si se revisa en primer lugar *Age* mediante *boxplot*:
@@ -186,7 +190,7 @@ Si se revisa en primer lugar *Age* mediante *boxplot*:
 boxplot(datos$Age, main="Edad")
 ```
 
-Aunque en este caso se observan valores que podrían considerarse *outliers* segun *boxplot*, se trata de edades altas, y lejos de la media, pero bastante probables de encontar dentro de la población, por lo que no es necesario tratarlas.
+Aunque en este caso se observan valores que podrían considerarse *outliers* según *boxplot*, se trata de edades altas, y lejos de la media, pero bastante probables de encontrar dentro de la población, por lo que no es necesario tratarlas.
 
 
 Si se repite el ejercicio, pero para *SibSp*:
@@ -195,7 +199,7 @@ Si se repite el ejercicio, pero para *SibSp*:
 boxplot(datos$SibSp, main="Número de hermanos y cónyuges")
 ```
 
-Se observan como posibles valores *outliers*, para 3,4,5 y 8. Ya que los tres primeros casos parecen factibles, pero el último no, se procede a eliminar los datos que contienen esos valores para que no produzcan variaciones significativas en los datos:
+Se observan como posibles valores *outliers*, para 3,4,5 y 8. Ya que los tres primeros casos parecen factibles por el número de hermanos y cónyuges posibles, pero el último no, por lo que se procede a eliminar los datos que contienen esos valores para que no produzcan variaciones significativas en los datos:
 
 
 ```{r}
@@ -211,7 +215,7 @@ Si se repite el ejercicio, pero para *Parch*:
 boxplot(datos$Parch, main="Número de padres e hijos")
 ```
 
-Se observa como los datos están muy centrados entorno al cero. Si se tiene en cuenta lo que sería normal a partir del número de hijos y padres que podrían viajar se puede analizar los casos más extremos, de forma que se verifique que sean *outliers*. Para ello se revisa el número de casos existentes con 4, 5 y 6:
+Se observa como los datos están muy centrados en torno al cero. Si se tiene en cuenta lo que sería normal a partir del número de hijos y padres que podrían viajar juntos, se puede analizar los casos más extremos, de forma que se verifique que sean *outliers*. Para ello se revisa el número de casos existentes con 4, 5 y 6:
 
 
 ```{r}
@@ -220,7 +224,7 @@ length(datos$Parch[datos$Parch == 5])
 length(datos$Parch[datos$Parch == 6])
 ```
 
-Se puede observar como además de ser pocos casos, los casos de 4 y 5 tienen sentido, ya que existen a su vez 4 y 5 casos, lo que implican que efectivamente era un grupo de 4 y 5 personas formado por padres e hijos. Esto no ocurre en cambio con 6, por lo que se eliminará del análisis:
+Se puede observar cómo además de ser pocos casos, los casos de 4 y 5 tienen sentido, ya que existen a su vez 4 y 5 casos, lo que implican que efectivamente eran un grupo de 4 y 5 personas formado por padres e hijos. Esto no ocurre en cambio con 6, por lo que se eliminará del análisis:
 
 ```{r}
 # Se eliminan todas las filas con Parch igual a 6
@@ -234,7 +238,7 @@ Si ahora se analiza *Fare*:
 boxplot(datos$Fare, main="Tarifa")
 ```
 
-Se observa que existen un gran número de valores que podrían ser *outliers* pero que por su coste podrían corresponder a los billetes de primera clase. De esta forma solo se elimina el valor extremos que está incluso fuera de los billetes más caros:
+Se observa que existen un gran número de valores que podrían ser *outliers* pero que por su coste podrían corresponder a los billetes de primera clase. De esta forma solo se eliminan aquellos valores extremos que están incluso fuera de los billetes más caros:
 
 ```{r}
 # Se eliminan todas las filas con Fare mayor a 500
@@ -246,31 +250,31 @@ datos <- datos[!(datos$Fare > 500),]
 
 # Análisis de los datos.
 
-De cara a realizar el análisis de los datos, se va a proceder a generar a crear una nueva variable que agrupe las edades, de esta manera será más fácil realizar comparativas entre los grupos de datos seleccionados:
+De cara a realizar el análisis de los datos, se va a proceder a generar una nueva variable que agrupe las edades, de esta manera será más fácil realizar comparativas entre los grupos de datos seleccionados:
 
 ```{r}
 # Se crean los grupos por edad
 datos$GrupoEdad <- datos$Age
 datos$GrupoEdad <- "Niños"
 datos$GrupoEdad[datos$Age >= 15 & datos$Age <= 60] <- "Adultos"
-datos$GrupoEdad[datos$Age > 60] <- "3ra Edad"
+datos$GrupoEdad[datos$Age > 60] <- "3a Edad"
 datos$GrupoEdad <- factor(datos$GrupoEdad)
 datos$Age <- NULL
 ```
 
-Así se va a tener tres grupos de edad, niños, adultos y ancianos, en lugar de valores independientes numéricos que puedan complicar la comparativa y la aplicación de métodos de análisis.
+Así se va a tener tres grupos de edad, niños, adultos y 3ª edad, en lugar de valores independientes numéricos que puedan complicar la comparativa y la aplicación de métodos de análisis.
 
 
 ## Selección de los grupos de datos que se quieren analizar/comparar.
 
-Ya que anteriormente se han visto alguna de las medidas estadísticas descriptivas a través de *summary* y se han revisado los datos en busca de valores desaparecidos y *outliers* se tiene una buena idea de como se puede aproximar su análisis para llegar a una conclusión útil a través de los mismos.
+Ya que anteriormente se han visto alguna de las medidas estadísticas descriptivas a través de *summary* y se han revisado los datos en busca de valores desaparecidos y *outliers*, se tiene una buena idea de cómo se puede aproximar su análisis para llegar a una conclusión útil a través de los mismos.
 
-De esta manera se podrán proceder con distintos grupos de análisis. En un primer lugar, será interesante observar aquellos grupos que califican al pasaje de una manera numérica, es decir, los que describen a los pasajeros a través del numero de familiares y su tarifa, ya que de esta manera se podrá verificar como se parecen estas distribuciones, lo que permitirá saber si tienen algún parecido, y de esta manera son datos útiles para un análisis posterior o deben de ser omitidos.
+De esta manera se podrán proceder con distintos grupos de análisis. En un primer lugar, será interesante observar aquellos grupos que califican al pasaje de una manera numérica, es decir, los que describen a los pasajeros a través del número de familiares y su tarifa, ya que de esta manera se podrá verificar como se parecen estas distribuciones, lo que permitirá saber si tienen algún parecido, y de esta manera si son datos útiles para un análisis posterior o deben de ser omitidos.
 
-Otro grupo a analizar, se fundamente en obtener un modelo a partir del cual se pueda clasificar directamente los pasajeros que sobrevivieron a partir de determinadas características, como son el genero o la edad.
+Otro conjunto a analizar, se fundamenta en obtener modelos a partir de los cual se pueda clasificar de una manera rápida los pasajeros que sobrevivieron o no a partir de determinadas características, como son el género o la edad. Así se podrá poder obtener un conocimiento del grupo de datos, que posteriormente permita afinar el análisis para recoger una mayor predictibilidad del modelo.
 
 
-Además, será recomendable analizar todas las variables a través de distintos modelos a partir del conocimiento que se obtenga de los dos análisis anteriores. Ya que tras ver como se relacionan determinadas variables será posible simplificar en análisis, y por lo tanto construir modelos de predicción utiles con un coste computacional más reducido.
+Además, será recomendable analizar todas las variables a través de distintos modelos a partir del conocimiento que se obtenga de los dos análisis anteriores. Ya que tras ver como se relacionan determinadas variables será posible simplificar en análisis, y por lo tanto construir modelos de predicción útiles con un coste computacional más reducido.
 
 
 
@@ -278,41 +282,47 @@ Además, será recomendable analizar todas las variables a través de distintos 
 
 Como se ha comentado, se quiere analizar las variables numéricas para ver sus relaciones, por lo que en un primer paso se habrá de comprobar la normalidad y heterocedasticidad para poder saber que test aplicar posteriormente. 
 
-De esta manera, si se comienza por el numero de hermanos:
+Comenzando por la normalidad, y usando el test de *Kolmogorov-Smirnov* y *Shapiro-Wilk* para verificar los resultados:
+
+* En primer lugar se revisa el número de hermanos analizando la variable *SibSp*:
 
 ```{r message=FALSE, warning=FALSE}
 ks.test(datos$SibSp, pnorm, mean(datos$SibSp), sd(datos$SibSp))
 shapiro.test(datos$SibSp)
 ```
 
-Se obtiene mediante ambos test de manera univoca que los datos no presentaran normalidad.
+|     Se obtiene mediante ambos test de manera univoca que los datos no presentaran normalidad.
 
-Ahora se realiza el mismo proceso para el numero de hijos y padres:
+* Ahora se realiza el mismo proceso para el número de hijos y padres a través de la variable *Parch*:
 
 ```{r message=FALSE, warning=FALSE}
 ks.test(datos$Parch, pnorm, mean(datos$Parch), sd(datos$Parch))
 shapiro.test(datos$Parch)
 ```
 
-Obteniendo el mismo resultado en este caso también.
+|     Obteniendo el mismo resultado en este caso también.
 
-Si se procede a analizar las tarifas:
+* Si se procede a analizar las tarifas *Fare*:
 
 ```{r message=FALSE, warning=FALSE}
 ks.test(datos$Fare, pnorm, mean(datos$Fare), sd(datos$Fare))
 shapiro.test(datos$Fare)
 ```
 
-De nuevo se obtiene el mismo resultado, por lo que no existe normalidad en los datos presentados.
+|     De nuevo se obtiene el mismo resultado, por lo que no existe normalidad en los datos presentados.
 
 
 Ahora se realizara el mismo proceso para las variables, pero teniendo en cuenta que lo que se busca es comprobar como cambia la varianza. Ya que se sabe que las variables no cumplen la condición de normalidad será necesario emplear el test de *Fligner-Killeen* para cada par de datos:
 
+
 ```{r message=FALSE, warning=FALSE}
 # Se carga la librería car
 if (!require('car')) install.packages('car'); library('car')
+
 fligner.test(SibSp ~ Fare, data = datos)
 ```
+| 
+| 
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -324,44 +334,49 @@ fligner.test(Fare ~ Parch, data = datos)
 fligner.test(SibSp ~ Parch, data = datos)
 ```
 
-Como se observa se rechaza la hipótesis nula en todos los casos, por lo que se puede concluir que todos los datos presentarán una varianza estadísticamente diferentes. Esta conclusión resulta útil para incluir las variables en un análisis posterior y no descartar ninguna de ellas para su uso en el mismo.
+Como se observa se rechaza la hipótesis nula en todos los casos, por lo que se puede concluir que todos los datos presentarán una varianza estadísticamente diferente. Esta conclusión resulta útil para incluir las variables en un análisis posterior y no descartar ninguna de ellas para su uso en el mismo.
+
 
 
 ## Aplicación de pruebas estadísticas para comparar los grupos de datos.
 
 
-Antes de pasar a otro tipo de pruebas, en línea con los resultados obtenidos anteriormente, se pueden realizar contrastes no parametricos para tratar de averiguar si las tres variables estudiadas presentan diferencias significativas respecto de los supervivientes.
+Antes de pasar a otro tipo de pruebas, en línea con los resultados obtenidos anteriormente, se pueden realizar contrastes no paramétricos para tratar de averiguar si las tres variables estudiadas presentan diferencias significativas respecto de los supervivientes.
 
-De esta manera si se observan los supervivientes respecto del número de hermanos:
+De esta manera si se realizan contrastes entre los supervivientes respecto de cada una de las variables a través del test de *Kruskal-Wallis*:
+
+* En primer lugar para el número de hermanos *SibSp*:
 
 
 ```{r message=FALSE, warning=FALSE}
 kruskal.test(Survived ~ SibSp, data = datos)
 ```
 
-Se comprueba que efectivamente existen diferencias significativas respecto de los supervivientes en función del número de hermanos.
+|     Se comprueba que efectivamente existen diferencias significativas respecto de los supervivientes en función del número de hermanos.
 
 
-Si ahora se realiza el mismo análisis pero para el número de padres e hijos:
+* Si ahora se realiza el mismo análisis, pero para el número de padres e hijos *Parch*:
 
 
 ```{r message=FALSE, warning=FALSE}
 kruskal.test(Survived ~ Parch, data = datos)
 ```
 
-Se comprueba que efectivamente también existe una diferencia significativa cuando se tiene en cuenta esta variable.
+|     Se comprueba que efectivamente también existe una diferencia significativa cuando se tiene en cuenta esta variable.
 
 
-Por último se realiza el análisis pero para la tarifa:
+* Por último se realiza el análisis, pero para la tarifa *Fare*:
 
 
 ```{r message=FALSE, warning=FALSE}
 kruskal.test(Survived ~ Fare, data = datos)
 ```
 
-También se llega a la misma conclusión, por lo que las tres variables afectarán a la manera en que sobrevivieron los pasajeros.
+|     También se llega a la misma conclusión, por lo que las tres variables afectarán a la manera en que sobrevivieron los pasajeros.
 
-Merece la pena observar si existe cierta correlación entre estas variables, por lo que ser verifica a través del método de *Spearman* al ser las distribuciones no normales:
+
+
+Merece la pena observar si existe cierta correlación entre estas variables, por lo que se verifica a través del método de *Spearman* al ser las distribuciones no normales:
 
 ```{r message=FALSE, warning=FALSE}
 datos_cor <- datos[c("SibSp","Parch","Fare")]
@@ -375,50 +390,47 @@ Observando un cierto nivel de correlación que por lo tanto hace latente que las
 
 
 
-Si ahora se centra el análisis en el otro grupo de variables que se comentaba, se puede realizar el análisis de una manera visual.
+Si ahora se centra el análisis en el otro grupo de variables categóricas que se comentaba, se puede realizar en primer lugar un análisis de una manera visual para obtener conclusiones rápidas:
 
-```{r, message=FALSE, warning=FALSE, fig.align = 'center', fig.width=7, fig.height=4}
+```{r, message=FALSE, warning=FALSE, fig.align = 'center', fig.width=7, fig.height=3.5}
 # Se cargan las librerías
 if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
 if (!require('gridExtra')) install.packages('gridExtra'); library('gridExtra')
 if (!require('grid')) install.packages('grid'); library('grid')
 grid.newpage()
 porclase<-ggplot(datos,aes(Pclass,fill=Survived))+geom_bar(position="fill") +
-  labs(x="Clase", y="Pasajeros")+ guides(fill=guide_legend(title="")) + 
-  scale_fill_manual(values=c("#0000FF","#009999"))+ggtitle("Supervivencia por Clase")
+  labs(x="", y="")+ scale_fill_manual(values=c("#0000FF","#009999"))+
+  guides(fill=guide_legend(title=""))+ggtitle("Supervivencia por Clase") 
 poredad<-ggplot(datos,aes(GrupoEdad,fill=Survived))+geom_bar(position="fill") +
-  labs(x="Grupo de Edad", y="Pasajeros")+ guides(fill=guide_legend(title=""))+ 
-  scale_fill_manual(values=c("#0000FF","#009999"))+
-  ggtitle("Supervivencia por Grupo de Edad")
+  labs(x="", y="")+ scale_fill_manual(values=c("#0000FF","#009999"))+
+  guides(fill=guide_legend(title=""))+ggtitle("Supervivencia por Grupo de Edad")
 porgenero<-ggplot(datos,aes(Sex,fill=Survived))+ geom_bar(position="fill") +
-  labs(x="Genero", y="Pasajeros")+ guides(fill=guide_legend(title=""))+ 
-  scale_fill_manual(values=c("#0000FF","#009999"))+ggtitle("Supervivencia por Genero")
+  labs(x="", y="")+scale_fill_manual(values=c("#0000FF","#009999"))+
+  guides(fill=guide_legend(title=""))+ ggtitle("Supervivencia por Género")
 grid.arrange(porclase,poredad,porgenero,ncol=2)
 ```
 
-
-De manera que se puede concluir rápidamente como existe una mayor proporción de mujeres que sobrevivieron, y a su vez de niños y de pasajeros de primera clase.
-
-
-Ahora se va procede a realizar un modelo supervisado, para analizar si los datos que se han podido observar anteriormente tienen alguna interpretación adicional. Para ello, se plantea un modelo basado en arboles de decisión:
+Efectivamente se puede concluir inmediatamente mediante la visualización como existe una mayor proporción de mujeres que sobrevivieron, y a su vez de niños y de pasajeros de primera clase.
 
 
-```{r, message=FALSE, warning=FALSE, fig.align = 'center', fig.width=7, fig.height=4}
-# Se carga las librería C50
+Ahora se procede a realizar un modelo supervisado, para analizar si los datos que se han podido observar anteriormente tienen alguna interpretación adicional. Para ello, se plantea un modelo basado en arboles de decisión:
+
+
+```{r, message=FALSE, warning=FALSE, fig.align = 'center', fig.width=7, fig.height=3.5}
+# Se carga la librería C50
 if (!require('C50')) install.packages('C50'); library('C50')
 datos_arbol <- datos[c("Pclass","Sex","GrupoEdad")]
 arbol <- C50::C5.0(datos_arbol, datos$Survived)
-# Se calcula el error
+# Se calcula el error y se muestra el árbol
 print(paste0("El error al clasificar es: ",
              sum(predict(arbol,datos_arbol) != datos$Survived)/nrow(datos_arbol)))
-# Se muestra el árbol
 plot(arbol)
 ```
 
-En el modelo, al tener en consideración de manera conjunta todas las variables para realizar la clasificación se observa como emplea tan solo dos variables, por lo que es capaz de inferir si la persona sobrevivirá a través solo de la edad y el grupo de edad.
+En el modelo, al tener en consideración de manera conjunta todas las variables para realizar la clasificación se observa como emplea tan solo dos variables, por lo que es capaz de inferir si la persona sobrevivirá o no a través de solo la edad y el grupo de edad, aunque con un margen de error amplio.
 
 
-Para contrastar si el resultado anterior tienen sentido, se va a proceder a realizar un modelo pero esta vez basado en regresión logística, al ser la variable objetivo dicotomica:
+Para contrastar si el resultado anterior tiene sentido, se va a proceder a realizar un modelo, pero esta vez basado en regresión logística, al ser la variable objetivo dicotómica:
 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -426,9 +438,10 @@ regLO <- glm(datos$Survived ~ GrupoEdad+Pclass+Sex,data=datos_arbol, family="bin
 summary(regLO)
 ```
 
-Ahora se puede observar como la significancia de las variables realmente decae con el grupo de edad de los ancianos, siendo alta para el resto de las variables, lo que si se compara con el resultado anterior, tiene su origen en que el grupo de ancianos en su inmensa mayoría se clasifican como no supervivientes, de ahí que apenas presente significancia.
+Ahora se puede observar como la significancia de las variables realmente decae con el grupo de la 3ª edad, siendo alta para el resto, lo que, si se compara con el resultado anterior, tiene su origen en que el grupo de la 3ª edad en su inmensa mayoría se clasifican como no supervivientes, de ahí que apenas presente significancia.
 
-Si se calcula la efectividad del modelo construido aún a sabiendas de que son los mismos datos usados, sin tener en cuenta que se podría haber generado un conjunto de entrenamiento y otro de test, pero para tener una referencia respecto del metodo anterior:
+
+Si se calcula la efectividad del modelo construido aún a sabiendas de que son los mismos datos usados, sin tener en cuenta que se podría haber generado un conjunto de entrenamiento y otro de test, pero para tener una referencia respecto del método anterior:
 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -443,16 +456,19 @@ print(paste0("El error al clasificar es: ",
 
 Se observa en este caso una leve mejoría, fruto como se ha visto de que emplee el total de las variables para realizar las predicciones.
 
-Si volviendo a los datos anteriores, se plantea un algoritmo no supervisado para contrastar con los anteriores. En este caso se usa *DBSCAN*:
+
+Volviendo a los datos iniciales, se plantea el mismo análisis, pero con un algoritmo no supervisado con el objetivo de contrastar estos últimos resultados con los iniciales, y así poder comparar los resultados entre ambos grupos de datos seleccionados. En este caso se emplea *DBSCAN*:
 
 ```{r, message=FALSE, warning=FALSE}
-# Se carga las librería C50
+# Se carga la librería fpc
 if (!require('fpc')) install.packages('fpc'); library('fpc')
-ds <- dbscan(datos_cor, eps=2, MinPts = 20)
-table(ds$cluster, datos$Survived)
+modelo_dbscan <- dbscan(datos_cor, eps=2, MinPts = 20)
+table(modelo_dbscan$cluster, datos$Survived)
 ```
 
-Después de haber modificado los parámetros para que solo queden dos grupos como los que se buscan y teniendo en cuenta que los grupos no corresponden entre cero y No, ya que *DBSCAN* no nombra los grupos, suponiendo el mejor caso, se tiene que el número de muestras correctamente clasificadas es del 65%, sensiblemente inferior a los métodos anteriores.
+
+Después de haber modificado los parámetros para que solo queden dos grupos en los que se quiere clasificar, superviviente o no, y teniendo en cuenta que los grupos no corresponden entre *0* y *No*, ya que *DBSCAN* no nombra los grupos, se supone el mejor escenario, y por lo tanto se tiene que el número de muestras correctamente clasificadas es del 65%, sensiblemente inferior a los métodos anteriores.
+
 
 Por último, se genera el fichero con los datos empleados para que pueda ser usado posteriormente:
 
@@ -461,24 +477,24 @@ write.csv(datos, file = "data_out/Titanic_clean.csv", row.names=FALSE)
 ```
 
 
-
 \pagebreak
 
 
 # Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
 
-A través del análisis realizado se puede concluir que se han encontrado unos resultados que respondan el planteamiento original del problema, ya que se puede dar explicación a una mayor o mejor supervivencia a partir de las distintas características de los pasajeros.
+A través del análisis realizado se puede concluir que se han encontrado unos resultados que responden el planteamiento original del problema, ya que se puede dar explicación a una mayor o menor supervivencia en función de las distintas características de los pasajeros.
 
 
-Dentro de los análisis realizados, se ha podido comprobar como las variables numéricas presentaban diferencias significativas al contrastarse contra la variable objetivo de supervivencia, indicando así que la supervivencia difiera entre los distintos niveles de hijos, padres, hermanos, cónyuges, y la tarifa del billete. Además se ha analizado conjuntamente las variables numéricas para saber si existía correlación o no, demostrando efectivamente así que se influyen cuando se quiere conocer si se sobrevivió o no, a partir de dichas variables. Todo ello ha sido realizado tras abordar la distribución de las variables, ya que una vez comprobada la no normalidad y la homocedasticidad, se pueden aplicar los test adecuados para obtener los resultados comentados.
+Dentro de los análisis realizados, se ha podido comprobar como las variables numéricas presentaban diferencias significativas al contrastarse contra la variable objetivo de supervivencia, indicando así que la supervivencia difiere entre los distintos niveles de hijos, padres, hermanos, cónyuges, y la tarifa del billete. Además, se ha analizado conjuntamente las variables numéricas para saber si existe correlación o no, demostrando efectivamente así, que se influyen cuando se quiere conocer si se sobrevivió o no a partir de dichas variables. Todo ello ha sido realizado tras abordar la distribución de las variables, ya que, una vez comprobada la no normalidad y la homocedasticidad, se pueden aplicar los test adecuados para obtener los resultados comentados.
 
-Aprovechando las variables categóricas que se tenían, se han podido realizar métodos supervisados y de regresión para poder obtener de una manera sencilla si realmente estas variables eran útiles para poder conocer la variable objetivo, llegando a la conclusión que si lo son. Incluso se ha visto a través del árbol de decisión, como con solo las variables edad y genero, se puede llegar a una decisión rápida (a costa de un mayor error) de si el pasajero sobrevivió o no. Para verificar este punto además se ha visto mediante regresión que al tener en cuenta la tercera variable el error se reducía, por lo que en sucesivos ajustes se puede obtener un modelo más adecuado.
-
-
-Por último, se ha querido emplear un método de partición para comparar este resultado con los anteriores, usando en este caso *DBSCAN*. Si bien los resultaos no son tan buenos como en los casos anteriores, este método permite obtener los resultados de manera no supervisado, sin tener en cuenta la variable objetivo, lo que puede llegar a resultar útil, como por ejemplo para valorar el conjunto de *train* que no contiene este valor.
+Aprovechando las variables categóricas que se tenían, se han podido realizar análisis basados en métodos supervisados y de regresión, para poder obtener de una manera sencilla si realmente estas variables eran útiles para poder conocer la variable objetivo, llegando a la conclusión de que si lo son. Incluso se ha visto a través del árbol de decisión, como con solo las variables edad y género, se puede llegar a una decisión rápida (a costa de un mayor error) de si el pasajero sobrevivió o no. Para verificar este punto además se ha visto mediante regresión que al tener en cuenta la tercera variable el error se reducía, por lo que en sucesivos ajustes se puede obtener un modelo más adecuado.
 
 
-Así se puede concluir, que el protocolo establecido de las mujeres y los niños primero, se cumple en este caso ya que correla ampliamente el nivel de supervivencia de estas clases. Además se puede observar como también existe un mayor indice de supervivencia entre los pasajeros de las clases superiores que de las inferiores, tal y como se esperaba al inicio del análisis.
+Por último, se ha querido emplear un método de partición para comparar este resultado con los anteriores, usando en este caso *DBSCAN*. Si bien el error no es tan bueno como en los casos anteriores, este método permite obtener los resultados de manera no supervisado, sin tener en cuenta la variable objetivo, lo que puede llegar a resultar útil, como por ejemplo para valorar el conjunto de *train* que no contiene este valor, o cualquier grupo nuevo de datos que se plantee sin la variable objetivo.
+
+
+Así se puede concluir, que el protocolo establecido de las mujeres y los niños primero, se cumple en este caso ya que córrela ampliamente el nivel de supervivencia de estas clases. Además, se puede observar como también existe un mayor índice de supervivencia entre los pasajeros de las clases superiores que de las inferiores, tal y como se esperaba al inicio del análisis.
+
 
 
 
@@ -495,7 +511,7 @@ https://github.com/Dani643/Limpiezayanalisis/tree/main/codigo
 
 Contribuciones | Firma
 ------------------- | ----------------- 
-Investigación Previa| Daniel González Rodríguez
+Investigación previa| Daniel González Rodríguez
 Redacción de las respuestas| Daniel González Rodríguez
 Desarrollo código| Daniel González Rodríguez
 
