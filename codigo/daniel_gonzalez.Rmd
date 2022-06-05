@@ -63,7 +63,7 @@ El análisis del dataset del Titanic aunque a priori pueda parecer intrascendent
 
 El segundo punto, va anidado al primero, y es que muestra la capacidad del análisis de datos y del *machine learning* para extraer conocimiento de los mismos, mostrando la utilidad de esta ciencia.
 
-
+\pagebreak
 
 # Integración y selección de los datos de interés a analizar.
 
@@ -105,7 +105,7 @@ datos$Pclass <- factor(datos$Pclass)
 datos$Sex <- factor(datos$Sex)
 ```
 
-
+\pagebreak
 
 # Limpieza de los datos.
 
@@ -241,6 +241,9 @@ Se observa que existen un gran número de valores que podrían ser *outliers* pe
 datos <- datos[!(datos$Fare > 500),]
 ```
 
+
+\pagebreak
+
 # Análisis de los datos.
 
 De cara a realizar el análisis de los datos, se va a proceder a generar a crear una nueva variable que agrupe las edades, de esta manera será más fácil realizar comparativas entre los grupos de datos seleccionados:
@@ -336,9 +339,10 @@ De esta manera si se observan los supervivientes respecto del número de hermano
 kruskal.test(Survived ~ SibSp, data = datos)
 ```
 
-Se comprueba que efectivamente existen diferencias significatuvas respecto de los supervivientes en función del númreo de hermanos.
+Se comprueba que efectivamente existen diferencias significativas respecto de los supervivientes en función del número de hermanos.
 
-Si ahora se realiza el mismo analisis pero para el número de padres e hijos:
+
+Si ahora se realiza el mismo análisis pero para el número de padres e hijos:
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -346,6 +350,7 @@ kruskal.test(Survived ~ Parch, data = datos)
 ```
 
 Se comprueba que efectivamente también existe una diferencia significativa cuando se tiene en cuenta esta variable.
+
 
 Por último se realiza el análisis pero para la tarifa:
 
@@ -356,7 +361,7 @@ kruskal.test(Survived ~ Fare, data = datos)
 
 También se llega a la misma conclusión, por lo que las tres variables afectarán a la manera en que sobrevivieron los pasajeros.
 
-Merece la pena observar si existe cierta correlación entre estas variables, por lo que ser verifica a traves del metodo de *Spearman* al ser las distribuciones no normales:
+Merece la pena observar si existe cierta correlación entre estas variables, por lo que ser verifica a través del método de *Spearman* al ser las distribuciones no normales:
 
 ```{r message=FALSE, warning=FALSE}
 datos_cor <- datos[c("SibSp","Parch","Fare")]
@@ -373,7 +378,7 @@ Observando un cierto nivel de correlación que por lo tanto hace latente que las
 Si ahora se centra el análisis en el otro grupo de variables que se comentaba, se puede realizar el análisis de una manera visual.
 
 ```{r, message=FALSE, warning=FALSE, fig.align = 'center', fig.width=7, fig.height=4}
-# Se carga las librerías
+# Se cargan las librerías
 if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
 if (!require('gridExtra')) install.packages('gridExtra'); library('gridExtra')
 if (!require('grid')) install.packages('grid'); library('grid')
@@ -392,47 +397,51 @@ grid.arrange(porclase,poredad,porgenero,ncol=2)
 ```
 
 
-De manera que se puede observar directamente como existe una mayor proporción de mujeres que sobrevivieron, y a su vez de niños, como de pasajeros de primera clase.
+De manera que se puede concluir rápidamente como existe una mayor proporción de mujeres que sobrevivieron, y a su vez de niños y de pasajeros de primera clase.
 
-Ahora se va a realizar un modelo supervisado para ver si los datos que se han podido ver arriba tienen alguna interpretación adicional. Para ello se plantea un modelo basado en arboles de decisión:
+
+Ahora se va procede a realizar un modelo supervisado, para analizar si los datos que se han podido observar anteriormente tienen alguna interpretación adicional. Para ello, se plantea un modelo basado en arboles de decisión:
 
 
 ```{r, message=FALSE, warning=FALSE, fig.align = 'center', fig.width=7, fig.height=4}
 # Se carga las librería C50
 if (!require('C50')) install.packages('C50'); library('C50')
 datos_arbol <- datos[c("Pclass","Sex","GrupoEdad")]
-arbol <- C50::C5.0(datos_arbol, datos$Survived, rules=TRUE)
-summary(arbol)
 arbol <- C50::C5.0(datos_arbol, datos$Survived)
+# Se calcula el error
+print(paste0("El error al clasificar es: ",
+             sum(predict(arbol,datos_arbol) != datos$Survived)/nrow(datos_arbol)))
+# Se muestra el árbol
 plot(arbol)
 ```
 
-En el modelo, al tener en consideración de manera conjunta todas las variables se observa como realiza el modelo basándose en tan solo dos variables, por lo que es capaz de inferir si la persona sobrevivirá a través solo de la edad y el grupo de edad.
+En el modelo, al tener en consideración de manera conjunta todas las variables para realizar la clasificación se observa como emplea tan solo dos variables, por lo que es capaz de inferir si la persona sobrevivirá a través solo de la edad y el grupo de edad.
 
 
 Para contrastar si el resultado anterior tienen sentido, se va a proceder a realizar un modelo pero esta vez basado en regresión logística, al ser la variable objetivo dicotomica:
 
 
 ```{r, message=FALSE, warning=FALSE}
-modelo_reglo <- glm(datos$Survived ~ GrupoEdad+Pclass+Sex,data=datos_arbol,
-                    family="binomial")
-summary(modelo_reglo)
+regLO <- glm(datos$Survived ~ GrupoEdad+Pclass+Sex,data=datos_arbol, family="binomial")
+summary(regLO)
 ```
 
-Ahora se puede observar como la significancia de las variables realmente cae con el grupo de edad de los ancianos, siendo alta para el resto de las variables, lo que contraste con el resultado anterior. Si se calcula la efectividad del modelo construido aún con los datos usados, sin tener en cuenta que se podría haber generado un conjunto de entrenamiento y otro de test:
+Ahora se puede observar como la significancia de las variables realmente decae con el grupo de edad de los ancianos, siendo alta para el resto de las variables, lo que si se compara con el resultado anterior, tiene su origen en que el grupo de ancianos en su inmensa mayoría se clasifican como no supervivientes, de ahí que apenas presente significancia.
+
+Si se calcula la efectividad del modelo construido aún a sabiendas de que son los mismos datos usados, sin tener en cuenta que se podría haber generado un conjunto de entrenamiento y otro de test, pero para tener una referencia respecto del metodo anterior:
 
 
 ```{r, message=FALSE, warning=FALSE}
-prediccionRL <- predict(modelo_reglo, datos_arbol,
-                        type="response")
+prediccionRL <- predict(regLO, datos_arbol, type="response")
 prediccionRL[prediccionRL > 0.5]  <- "Si"
 prediccionRL[prediccionRL <= 0.5]  <- "No"
 prediccionRL <- as.factor(prediccionRL)
-efectvidad <- sum(prediccionRL == datos$Survived) / length(datos$Survived)
-efectvidad
+# Se calcula el error
+print(paste0("El error al clasificar es: ",
+             (1 - sum(prediccionRL == datos$Survived) / length(datos$Survived))))
 ```
 
-Se observa que casi no presenta diferencia con el árbol, por lo que las predicciones serán parecidas.
+Se observa en este caso una leve mejoría, fruto como se ha visto de que emplee el total de las variables para realizar las predicciones.
 
 Si volviendo a los datos anteriores, se plantea un algoritmo no supervisado para contrastar con los anteriores. En este caso se usa *DBSCAN*:
 
@@ -443,15 +452,7 @@ ds <- dbscan(datos_cor, eps=2, MinPts = 20)
 table(ds$cluster, datos$Survived)
 ```
 
-Después de haber modificado los parametros para que solo queden dos grupos como los que se buscan y teniendo en cuenta que los grupos no corresponden entre cero y No, ya que *DBSCAN* no nombra los grupos, suponiendo el mejor caso, se tiene que el número de muestras correctamente clasificadas es del 65%, sensiblemente inferior a los metodos anteriores.
-
-
-## Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
-
-A través del análisis realizado se ha podido encontrar unos resultados que respondan el planteamiento original del problema, ya que se puede dar explicación a la mayor supervivencia a partir de las distintas caracteristicas de los pasajeros.
-
-Así se puede concluir, que el protocolo establecido de las mujeres y los niños primero, se cumple en este caso ya que correla ampliamente el nivel de supervivencia de estas clases. Además se puede observar como también existe un mayor indice de supervivencia entre los pasajeros de las clases superiores que de la inferiores.
-
+Después de haber modificado los parámetros para que solo queden dos grupos como los que se buscan y teniendo en cuenta que los grupos no corresponden entre cero y No, ya que *DBSCAN* no nombra los grupos, suponiendo el mejor caso, se tiene que el número de muestras correctamente clasificadas es del 65%, sensiblemente inferior a los métodos anteriores.
 
 Por último, se genera el fichero con los datos empleados para que pueda ser usado posteriormente:
 
@@ -459,7 +460,36 @@ Por último, se genera el fichero con los datos empleados para que pueda ser usa
 write.csv(datos, file = "data_out/Titanic_clean.csv", row.names=FALSE)
 ```
 
-https://github.com/Dani643/Limpiezayanalisis
+
+
+\pagebreak
+
+
+# Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
+
+A través del análisis realizado se puede concluir que se han encontrado unos resultados que respondan el planteamiento original del problema, ya que se puede dar explicación a una mayor o mejor supervivencia a partir de las distintas características de los pasajeros.
+
+
+Dentro de los análisis realizados, se ha podido comprobar como las variables numéricas presentaban diferencias significativas al contrastarse contra la variable objetivo de supervivencia, indicando así que la supervivencia difiera entre los distintos niveles de hijos, padres, hermanos, cónyuges, y la tarifa del billete. Además se ha analizado conjuntamente las variables numéricas para saber si existía correlación o no, demostrando efectivamente así que se influyen cuando se quiere conocer si se sobrevivió o no, a partir de dichas variables. Todo ello ha sido realizado tras abordar la distribución de las variables, ya que una vez comprobada la no normalidad y la homocedasticidad, se pueden aplicar los test adecuados para obtener los resultados comentados.
+
+Aprovechando las variables categóricas que se tenían, se han podido realizar métodos supervisados y de regresión para poder obtener de una manera sencilla si realmente estas variables eran útiles para poder conocer la variable objetivo, llegando a la conclusión que si lo son. Incluso se ha visto a través del árbol de decisión, como con solo las variables edad y genero, se puede llegar a una decisión rápida (a costa de un mayor error) de si el pasajero sobrevivió o no. Para verificar este punto además se ha visto mediante regresión que al tener en cuenta la tercera variable el error se reducía, por lo que en sucesivos ajustes se puede obtener un modelo más adecuado.
+
+
+Por último, se ha querido emplear un método de partición para comparar este resultado con los anteriores, usando en este caso *DBSCAN*. Si bien los resultaos no son tan buenos como en los casos anteriores, este método permite obtener los resultados de manera no supervisado, sin tener en cuenta la variable objetivo, lo que puede llegar a resultar útil, como por ejemplo para valorar el conjunto de *train* que no contiene este valor.
+
+
+Así se puede concluir, que el protocolo establecido de las mujeres y los niños primero, se cumple en este caso ya que correla ampliamente el nivel de supervivencia de estas clases. Además se puede observar como también existe un mayor indice de supervivencia entre los pasajeros de las clases superiores que de las inferiores, tal y como se esperaba al inicio del análisis.
+
+
+
+# Código
+
+
+El código empleado se encuentra distribuido a través de todos los *chunks* del texto y adicionalmente está disponible de manera completa en:
+
+
+https://github.com/Dani643/Limpiezayanalisis/tree/main/codigo
+
 
 *****
 
